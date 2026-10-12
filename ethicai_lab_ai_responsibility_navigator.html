@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EthicAI Lab - AI Responsibility Navigator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f6ff',
+                            100: '#e0edff',
+                            400: '#38bdf8',
+                            500: '#06b6d4',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            accent: '#6366f1',
+                            accentGlow: '#4f46e5',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e'
+                        },
+                        darkBg: '#090d16',
+                        cardBg: '#111827',
+                        cardBorder: '#1f2937'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Custom Scrollbars and Accent Glows */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-panel-glow {
+            box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.15);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8 0%, #6366f1 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #1f2937;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
+            transition: all 0.2s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #818cf8;
+        }
+        
+        .role-dev::-webkit-slider-thumb { background: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.8); }
+        .role-corp::-webkit-slider-thumb { background: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.8); }
+        .role-user::-webkit-slider-thumb { background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.8); }
+        .role-reg::-webkit-slider-thumb { background: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.8); }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-200 font-sans min-h-screen flex flex-col selection:bg-brand-accent selection:text-white antialiased">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('scenarios')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-accent to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                        <i class="fa-solid fa-scale-balanced text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
+                            Ethic<span class="gradient-text">AI</span> Lab
+                        </span>
+                        <span class="text-[10px] tracking-widest uppercase block text-slate-400 font-mono -mt-1">Responsibility Navigator</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex space-x-1 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
+                    <button id="nav-scenarios" onclick="switchTab('scenarios')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-brand-accent text-white shadow-md">
+                        <i class="fa-solid fa-gamepad mr-2"></i> Casos de Estudio
+                    </button>
+                    <button id="nav-library" onclick="switchTab('library')" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200">
+                        <i class="fa-solid fa-book-open mr-2"></i> Biblioteca Ético-Legal
+                    </button>
+                    <button id="nav-stats" onclick="switchTab('stats')" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200">
+                        <i class="fa-solid fa-chart-pie mr-2"></i> Estadísticas Globales
+                    </button>
+                </nav>
+
+                <!-- Status Badge -->
+                <div class="hidden sm:flex items-center space-x-2 bg-slate-900/90 px-3 py-1.5 rounded-full border border-slate-800 text-xs text-slate-300 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Marco Regulatorio: <strong class="text-brand-400">EU AI Act 2026</strong></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Nav Bar -->
+        <div class="flex md:hidden border-t border-slate-800 bg-slate-950/90 px-2 py-2 justify-around text-xs">
+            <button onclick="switchTab('scenarios')" id="mnav-scenarios" class="flex flex-col items-center p-1 text-brand-400 font-semibold">
+                <i class="fa-solid fa-gamepad text-base mb-1"></i> Casos
+            </button>
+            <button onclick="switchTab('library')" id="mnav-library" class="flex flex-col items-center p-1 text-slate-400">
+                <i class="fa-solid fa-book-open text-base mb-1"></i> Conceptos
+            </button>
+            <button onclick="switchTab('stats')" id="mnav-stats" class="flex flex-col items-center p-1 text-slate-400">
+                <i class="fa-solid fa-chart-pie text-base mb-1"></i> Global
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- SECTION 1: SCENARIOS & INTERACTIVE SIMULATOR -->
+        <section id="tab-scenarios" class="space-y-8">
+            
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 border border-indigo-500/20 shadow-2xl">
+                <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="max-w-3xl relative z-10">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-3">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>Simulador de Responsabilidad e Imputabilidad Jurídica</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                        ¿Quién paga cuando la <span class="gradient-text">Inteligencia Artificial</span> comete un error grave?
+                    </h1>
+                    <p class="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Explora dilemas éticos reales de la IA autónoma. Analiza las fallas, juzga la atribución de culpabilidad entre los 4 actores clave y compara tus veredictos con el marco legal vigente y la opinión pública.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Scenario Selector Carousel / Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-brand-400"></i> Selecciona un Caso de Estudio
+                    </h2>
+                    <span class="text-xs text-slate-400 font-mono" id="scenario-count-label">5 Dilemas Disponibles</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3" id="scenarios-grid">
+                    <!-- Dynamic rendering of scenario buttons via JS -->
+                </div>
+            </div>
+
+            <!-- Active Scenario Detail & Interactive Courtroom Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left Column: Scenario Narrative & Facts (5 Cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-5 relative overflow-hidden" id="scenario-card-detail">
+                        
+                        <!-- Header badge & title -->
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+                            <span id="case-category-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                Salud / Visión por Computador
+                            </span>
+                            <span id="case-risk-level" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                Riesgo Alto (EU AI Act)
+                            </span>
+                        </div>
+
+                        <div>
+                            <h3 id="case-title" class="text-xl font-bold text-white mb-2">Diagnóstico Oncológico Omitido por Algoritmo</h3>
+                            <p id="case-summary" class="text-sm text-slate-300 leading-relaxed">
+                                Un sistema de IA médica pasó por alto un carcinoma agresivo en una mamografía. El radiólogo confirmó el alta sin revisión manual detallada.
+                            </p>
+                        </div>
+
+                        <!-- Incident Evidence Box -->
+                        <div class="bg-slate-950/70 rounded-xl p-4 border border-slate-800/80 space-y-3">
+                            <div class="text-xs font-mono text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Evidencia del Incidente
+                            </div>
+                            <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside" id="case-evidence-list">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+
+                        <!-- Consequences / Damage -->
+                        <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-900/40 text-xs space-y-1">
+                            <span class="font-semibold text-rose-400 uppercase tracking-wider block">Daño / Impacto:</span>
+                            <p id="case-impact-text" class="text-rose-200">Retraso de 14 meses en tratamiento. Daño irreparable en la salud de la paciente.</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Actor Responsibilities Primer Card -->
+                    <div class="glass-panel rounded-2xl p-5 border border-slate-800 text-xs space-y-3">
+                        <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-brand-400"></i> Guía de Atribución de Culpa
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                                <strong class="text-brand-400 block mb-1">1. Creador / Dev</strong>
+                                Errores de código, sesgos en datos de entrenamiento, falta de pruebas.
+                            </div>
+                            <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                                <strong class="text-indigo-400 block mb-1">2. Empresa / Deployer</strong>
+                                Falta de capacitación, negligencia comercial, omisión de auditorías.
+                            </div>
+                            <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                                <strong class="text-emerald-400 block mb-1">3. Operador / Usuario</strong>
+                                Sesgo de automatización, desatención del protocolo de validación.
+                            </div>
+                            <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                                <strong class="text-amber-400 block mb-1">4. Reguladores / Estado</strong>
+                                Vacíos legales, falta de supervisión en el mercado.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Sliders & Judgment Panel (7 Cols) -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="glass-panel glass-panel-glow rounded-2xl p-6 border border-slate-800 space-y-6">
+                        
+                        <!-- Panel Header -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-gavel text-indigo-400"></i> Emite tu Veredicto
+                                </h3>
+                                <p class="text-xs text-slate-400">Distribuye el 100% de la responsabilidad total entre las partes implicadas.</p>
+                            </div>
+                            <!-- Budget Counter Indicator -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400 font-mono">Suma Total:</span>
+                                <span id="total-percentage-badge" class="px-3 py-1 rounded-full text-sm font-extrabold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                                    100%
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- SLIDERS CONTAINER -->
+                        <div class="space-y-5" id="sliders-container">
+                            
+                            <!-- 1. Desarrollador -->
+                            <div class="space-y-1.5 p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-brand-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-code"></i> 1. Desarrollador / Proveedor de IA
+                                    </span>
+                                    <span id="val-dev" class="font-mono font-bold text-brand-400 text-sm">25%</span>
+                                </div>
+                                <input type="range" id="slider-dev" min="0" max="100" value="25" class="w-full role-dev" oninput="handleSliderChange('dev', this.value)">
+                                <p class="text-[11px] text-slate-400">Defectos de diseño, algoritmos opacos, datos sesgados o falta de pruebas de seguridad.</p>
+                            </div>
+
+                            <!-- 2. Empresa Implementadora -->
+                            <div class="space-y-1.5 p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-indigo-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-building-user"></i> 2. Empresa / Entidad Desplegadora
+                                    </span>
+                                    <span id="val-corp" class="font-mono font-bold text-indigo-400 text-sm">25%</span>
+                                </div>
+                                <input type="range" id="slider-corp" min="0" max="100" value="25" class="w-full role-corp" oninput="handleSliderChange('corp', this.value)">
+                                <p class="text-[11px] text-slate-400">Elección de software inadecuado, falta de capacitación del personal o presión por métricas.</p>
+                            </div>
+
+                            <!-- 3. Operador / Profesional -->
+                            <div class="space-y-1.5 p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-emerald-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-user-gear"></i> 3. Operador / Profesional Humano
+                                    </span>
+                                    <span id="val-user" class="font-mono font-bold text-emerald-400 text-sm">25%</span>
+                                </div>
+                                <input type="range" id="slider-user" min="0" max="100" value="25" class="w-full role-user" oninput="handleSliderChange('user', this.value)">
+                                <p class="text-[11px] text-slate-400">Aceptación ciega de la IA (sesgo de automatización) u omisión de protocolos de supervisión.</p>
+                            </div>
+
+                            <!-- 4. Reguladores / Estado -->
+                            <div class="space-y-1.5 p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-amber-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-building-columns"></i> 4. Reguladores / Estado
+                                    </span>
+                                    <span id="val-reg" class="font-mono font-bold text-amber-400 text-sm">25%</span>
+                                </div>
+                                <input type="range" id="slider-reg" min="0" max="100" value="25" class="w-full role-reg" oninput="handleSliderChange('reg', this.value)">
+                                <p class="text-[11px] text-slate-400">Inexistencia o ambigüedad en normas de certificación y responsabilidad en el sector.</p>
+                            </div>
+
+                        </div>
+
+                        <!-- Lock/Balance Warning -->
+                        <div id="slider-warning" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                            <span>La suma de responsabilidades debe dar exactamente **100%**. Ajusta los valores para continuar.</span>
+                        </div>
+
+                        <!-- Action Controls -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                            <button id="btn-submit-verdict" onclick="submitVerdict()" class="flex-1 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Registrar Mi Veredicto
+                            </button>
+                            <button onclick="resetSliders()" class="py-3 px-4 rounded-xl font-semibold text-slate-400 bg-slate-800/60 hover:bg-slate-800 hover:text-white transition-all text-xs flex items-center justify-center gap-1.5 border border-slate-700">
+                                <i class="fa-solid fa-rotate-left"></i> Balancear (25%)
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- COMPARISON & EXPERT VERDICT RESULTS (Revealed on submit) -->
+                    <div id="results-panel" class="hidden glass-panel rounded-2xl p-6 border border-brand-500/30 space-y-6 animate-fade-in">
+                        
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                            <div>
+                                <span class="text-xs font-mono text-brand-400 uppercase tracking-widest block">Análisis Comparativo</span>
+                                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-column text-indigo-400"></i> Tu Veredicto vs. Comunidad vs. Marco Legal
+                                </h3>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                <i class="fa-solid fa-check-circle mr-1"></i> Veredicto Procesado
+                            </span>
+                        </div>
+
+                        <!-- Comparative Chart Container -->
+                        <div class="h-64 sm:h-72 w-full relative">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+
+                        <!-- Expert Legal Verdict & Rationale -->
+                        <div class="bg-slate-900/90 rounded-xl p-5 border border-indigo-500/30 space-y-3">
+                            <div class="flex items-center gap-2 text-indigo-300 font-bold text-sm">
+                                <i class="fa-solid fa-scale-balanced text-brand-400"></i> Dictamen del Marco Legal Real (EU AI Act & Jurisprudencia)
+                            </div>
+                            <p id="legal-verdict-text" class="text-xs text-slate-300 leading-relaxed">
+                                <!-- Populated dynamically -->
+                            </p>
+                            <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                                <span id="legal-statute-ref">Fundamento: Directiva de Responsabilidad de IA de la UE</span>
+                                <a href="#tab-library" onclick="switchTab('library')" class="text-brand-400 hover:underline flex items-center gap-1">
+                                    Saber más en Biblioteca <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 2: EDUCATIONAL ETHICS LIBRARY -->
+        <section id="tab-library" class="hidden space-y-8">
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <span class="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-400 border border-brand-accent/30 text-xs font-bold uppercase tracking-wider">
+                    Conocimiento Fundamental
+                </span>
+                <h2 class="text-3xl font-extrabold text-white">Biblioteca de Dilemas Éticos y Conceptos Clave</h2>
+                <p class="text-sm text-slate-400">
+                    Comprender la responsabilidad jurídica de los sistemas autónomos exige dominar estos cuatro pilares técnicos y jurisprudenciales.
+                </p>
+            </div>
+
+            <!-- Concept Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Card 1: Black Box Problem -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all group space-y-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-box-archive"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2">El Dilema de la "Caja Negra" (Black Box AI)</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Los modelos de Redes Neuronales Profundas (*Deep Learning*) procesan millones de parámetros interconectados. En muchos casos, ni siquiera sus propios creadores pueden rastrear la secuencia lógica exacta que condujo a una decisión errónea.
+                        </p>
+                    </div>
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-[11px] text-slate-400">
+                        <strong class="text-purple-300 block mb-1">Impacto en la Justicia:</strong>
+                        Impide probar el "nexo causal" tradicional en una demanda legal, pues no se puede demostrar exactamente qué ponderación falló.
+                    </div>
+                </div>
+
+                <!-- Card 2: Automation Bias -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all group space-y-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2">Sesgo de Automatización (Automation Bias)</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            La tendencia humana a confiar ciegamente en los resultados presentados por un sistema informático sobre su propio juicio, asumiendo que la máquina no comete equivocaciones.
+                        </p>
+                    </div>
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-[11px] text-slate-400">
+                        <strong class="text-emerald-300 block mb-1">Solución: Human-in-the-Loop (HITL)</strong>
+                        La regulación exige que el operador no sea un simple "firmante de sello", sino que posea la autoridad y capacidad real de anular la decisión de la IA.
+                    </div>
+                </div>
+
+                <!-- Card 3: Product Liability -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all group space-y-4">
+                    <div class="w-12 h-12 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2">Responsabilidad por Producto Defectuoso</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Aplica cuando un software de IA se comercializa como un bien físico o servicio cerrado. Si el producto carece de la seguridad objetiva razonable, el desarrollador responde sin necesidad de probar negligencia directa (*Strict Liability*).
+                        </p>
+                    </div>
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-[11px] text-slate-400">
+                        <strong class="text-brand-300 block mb-1">Ejemplo Típico:</strong>
+                        Vehículos de conducción autónoma de Nivel 4 o Nivel 5 donde el usuario es catalogado como pasajero y no como conductor activo.
+                    </div>
+                </div>
+
+                <!-- Card 4: EU AI Act framework -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all group space-y-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-scale-unbalanced-flip"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2">Ley de IA de la UE (EU AI Act) y Pirámide de Riesgo</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            El primer marco regulatorio integral del mundo. Clasifica los sistemas en cuatro niveles: Riesgo Inaceptable (prohibidos), Alto Riesgo (estrictamente auditados), Riesgo Limitado (transparencia) y Mínimo Riesgo.
+                        </p>
+                    </div>
+                    <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-[11px] text-slate-400">
+                        <strong class="text-amber-300 block mb-1">Sanciones Severas:</strong>
+                        Multas de hasta 35 millones de euros o el 7% de la facturación global anual por incumplir reglas de auditoría en sistemas de Alto Riesgo.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3: GLOBAL COMMUNITY STATISTICS -->
+        <section id="tab-stats" class="hidden space-y-8">
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
+                    Datos Agregados
+                </span>
+                <h2 class="text-3xl font-extrabold text-white">Consenso Global de la Comunidad</h2>
+                <p class="text-sm text-slate-400">
+                    Análisis acumulado de las opiniones registradas por miles de usuarios a través de los diferentes escenarios de prueba.
+                </p>
+            </div>
+
+            <!-- Global Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-brand-400"></i> Distribución Promedio Total de Responsabilidad
+                    </h3>
+                    <p class="text-xs text-slate-400">Atribución global consolidada para todos los escenarios evaluados.</p>
+                    <div class="h-64 relative">
+                        <canvas id="globalPieChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> Comparativa por Sector de Aplicación
+                    </h3>
+                    <p class="text-xs text-slate-400">Culpabilidad asignada al Desarrollador vs. Operador por sector.</p>
+                    <div class="h-64 relative">
+                        <canvas id="sectorBarChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-scale-balanced text-brand-400"></i>
+                <span class="font-bold text-slate-300">EthicAI Lab © 2026</span>
+                <span>— Plataforma Educativa e Interactiva de Dilemas Éticos en IA</span>
+            </div>
+            <div class="flex space-x-4">
+                <a href="#tab-library" onclick="switchTab('library')" class="hover:text-slate-300 transition-colors">Normativa UE</a>
+                <a href="#tab-scenarios" onclick="switchTab('scenarios')" class="hover:text-slate-300 transition-colors">Casos Prácticos</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           DATASETS: CASE STUDIES AND BENCHMARKS
+           ========================================================================== */
+        const scenarios = [
+            {
+                id: 'health',
+                title: 'Diagnóstico Oncológico Omitido por Visión por Computador',
+                category: 'Salud / Radiología',
+                riskLevel: 'Alto Riesgo (EU AI Act - Anexo III)',
+                summary: 'Un sistema de IA médica falló al detectar un tumor maligno de mama en etapa temprana. El radiólogo revisó el estudio durante una guardia exhaustiva de 12 horas y validó la sugerencia de alta de la IA sin analizar a fondo las microcalcificaciones.',
+                evidence: [
+                    'El dataset de entrenamiento del modelo contenía menos del 5% de mamografías de esa variante de tumor.',
+                    'El hospital redujo el tiempo de atención por paciente de 15 a 5 minutos aduciendo la "eficiencia del software".',
+                    'El fabricante de la IA advirtió en el manual que el sistema era solo "asistencial" (Human-in-the-Loop).'
+                ],
+                impact: 'Retraso de 14 meses en el inicio de la quimioterapia. Pronóstico médico severamente agravado.',
+                benchmarks: {
+                    user: { dev: 25, corp: 25, user: 25, reg: 25 },
+                    community: { dev: 28, corp: 35, user: 27, reg: 10 },
+                    legal: { dev: 20, corp: 30, user: 45, reg: 5 }
+                },
+                legalVerdict: '<strong>Precedente Jurisprudencial (Negligencia Médica y Asignación de Riesgo):</strong> El profesional médico registrado tiene el deber deontológico final de comprobación (principio HITL). Salvo un fallo de sistema flagrante y no documentado, la responsabilidad civil y penal recae principalmente en el médico (45%) y el hospital por sobrecarga laboral (30%). El desarrollador (20%) responde si omitió sesgos conocidos en su dataset.',
+                legalStatute: 'Fundamento: Directiva de Responsabilidad de IA y Código Ético Médico'
+            },
+            {
+                id: 'auto',
+                title: 'Accidente Fatal de Vehículo Autónomo Nivel 3',
+                category: 'Transporte / Automoción',
+                riskLevel: 'Alto Riesgo (Sistemas de Seguridad)',
+                summary: 'Un automóvil con piloto automático activado no detectó un camión con remolque blanco brillante que cruzaba la autopista a mediodía, confundiendo el reflejo con el cielo despejado. El vehículo no frenó y impactó a alta velocidad.',
+                evidence: [
+                    'Los sensores ópticos (cámara) sufrieron saturación lumínica y el sensor LiDAR no estaba instalado para reducir costos de producción.',
+                    'El conductor estaba viendo una película en su teléfono celular en el momento del impacto.',
+                    'El vehículo emitió un pitido de advertencia para retomar el volante solo 1.2 segundos antes del impacto.'
+                ],
+                impact: 'Fallecimiento del conductor e invalidez del chofer del camión.',
+                benchmarks: {
+                    user: { dev: 25, corp: 25, user: 25, reg: 25 },
+                    community: { dev: 45, corp: 25, user: 20, reg: 10 },
+                    legal: { dev: 50, corp: 20, user: 20, reg: 10 }
+                },
+                legalVerdict: '<strong>Directiva de Responsabilidad por Productos Defectuosos:</strong> Si un fabricante vende un sistema bajo la marca "Autopilot" o "Autónomo" pero exige reacción en 1 segundo, existe un defecto de diseño de interfaz de seguridad. El fabricante/desarrollador asume la mayor carga (50%). El conductor retiene un 20% por imprudencia manifiesta.',
+                legalStatute: 'Fundamento: Convenio de Viena y Responsabilidad Estricta de Producto'
+            },
+            {
+                id: 'finance',
+                title: 'Sesgo Algorítmico y Discriminación en Crédito Hipotecario',
+                category: 'Finanzas / Scoring Crediticio',
+                riskLevel: 'Alto Riesgo (Acceso a Servicios Esenciales)',
+                summary: 'Una entidad bancaria utilizó una IA de Machine Learning para automatizar el otorgamiento de préstamos. Un estudio reveló que el algoritmo denegaba sistemáticamente solicitudes a personas de ciertos códigos postales y etnias, incluso con ingresos idénticos.',
+                evidence: [
+                    'El modelo fue entrenado con datos históricos del banco de los últimos 30 años, perpetuando patrones de segregación histórica.',
+                    'El algoritmo operaba como una "caja negra" que la entidad no auditó antes de poner en producción.',
+                    'La entidad no ofreció derecho de explicación o apelación humana a las solicitudes rechazadas.'
+                ],
+                impact: 'Más de 10.000 familias afectadas por discriminación indirecta sistemática.',
+                benchmarks: {
+                    user: { dev: 25, corp: 25, user: 25, reg: 25 },
+                    community: { dev: 30, corp: 48, user: 7, reg: 15 },
+                    legal: { dev: 25, corp: 55, user: 0, reg: 20 }
+                },
+                legalVerdict: '<strong>Ley de Igualdad de Oportunidades y EU AI Act:</strong> La empresa que despliega la IA (el Banco) es legalmente responsable de auditar los sesgos de sus proveedores antes de la implantación. El banco asume el 55% de la culpa por violar derechos fundamentales. Los reguladores asumen un 20% por falta de supervisión en el sector bancario.',
+                legalStatute: 'Fundamento: Reglamento General de Protección de Datos (RGPD) & Ley Anti-discriminación'
+            },
+            {
+                id: 'hr',
+                title: 'Selección Automatizada de Personal con Filtros Sexistas',
+                category: 'Recursos Humanos / LLM',
+                riskLevel: 'Alto Riesgo (Empleo / Acceso al Trabajo)',
+                summary: 'Una multinacional implementó un modelo de IA para filtrar 50.000 currículums. El sistema descartó de forma masiva solicitudes femeninas para puestos directivos técnicos debido a la frecuencia de palabras en perfiles históricos exitosos.',
+                evidence: [
+                    'El modelo penalizaba currículums que contenían la palabra "femenino" (ej. "capitana del equipo femenino de ajedrez").',
+                    'El departamento de RRHH admitió haber aprobado a los candidatos finalistas sin cuestionar la falta de diversidad.',
+                    'El software fue contratado como SaaS a una startup tecnológica.'
+                ],
+                impact: 'Pérdida de oportunidades laborales para miles de profesionales capacitadas.',
+                benchmarks: {
+                    user: { dev: 25, corp: 25, user: 25, reg: 25 },
+                    community: { dev: 35, corp: 40, user: 15, reg: 10 },
+                    legal: { dev: 30, corp: 50, user: 10, reg: 10 }
+                },
+                legalVerdict: '<strong>Derecho del Trabajo y Responsabilidad Laboral:</strong> La empresa empleadora es totalmente responsable ante las leyes del trabajo por sus procesos de contratación (50%). La startup proveedora comparte el 30% por vender un producto defectuoso que viola normativas explícitas de contratación.',
+                legalStatute: 'Fundamento: Convenios OIT y Normativa Laboral de Transparencia Algorítmica'
+            },
+            {
+                id: 'defense',
+                title: 'Fallo de Identificación en Dron Autónomo de Seguridad',
+                category: 'Seguridad / Drones',
+                riskLevel: 'Riesgo Inaceptable / Alto Riesgo',
+                summary: 'Un dron de patrullaje perimetral automatizado en una instalación industrial clasificó a un trabajador de mantenimiento fuera de horario como una "amenaza hostil", activando medidas de dispersión de gas lacrimógeno en un área cerrada.',
+                evidence: [
+                    'El operario no llevaba el chaleco con chip RFID de identificación debido a un olvido.',
+                    'El dron operaba bajo un modo "totalmente autónomo sin confirmación de operador" activado por la gerencia de seguridad.',
+                    'La visibilidad nocturna del sensor térmico estaba degradada por niebla.'
+                ],
+                impact: 'Lesiones respiratorias severas y traumatismo en el trabajador.',
+                benchmarks: {
+                    user: { dev: 25, corp: 25, user: 25, reg: 25 },
+                    community: { dev: 25, corp: 50, user: 15, reg: 10 },
+                    legal: { dev: 20, corp: 60, user: 10, reg: 10 }
+                },
+                legalVerdict: '<strong>Responsabilidad por Riesgo Empresarial y Manejo de Equipos Peligrosos:</strong> La gerencia de la empresa tomó la decisión de habilitar el modo "autónomo letal/dañino" sin supervisión humana obligatoria. La responsabilidad recae fuertemente en la entidad desplegadora (60%).',
+                legalStatute: 'Fundamento: Responsabilidad Civil Objetiva por Actividades Peligrosas'
+            }
+        ];
+
+        /* ==========================================================================
+           STATE MANAGEMENT
+           ========================================================================== */
+        let activeScenarioIndex = 0;
+        let sliderValues = { dev: 25, corp: 25, user: 25, reg: 25 };
+        let comparisonChartInstance = null;
+        let globalPieChartInstance = null;
+        let sectorBarChartInstance = null;
+
+        /* ==========================================================================
+           INITIALIZATION
+           ========================================================================== */
+        window.onload = function() {
+            renderScenarioButtons();
+            loadScenario(0);
+            initGlobalCharts();
+        };
+
+        /* ==========================================================================
+           NAVIGATION & TABS
+           ========================================================================== */
+        function switchTab(tabId) {
+            // Hide all tab sections
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            
+            // Show selected tab
+            const targetSection = document.getElementById(`tab-${tabId}`);
+            if (targetSection) targetSection.classList.remove('hidden');
+
+            // Reset Nav Button Styles
+            ['scenarios', 'library', 'stats'].forEach(id => {
+                const btn = document.getElementById(`nav-${id}`);
+                const mbtn = document.getElementById(`mnav-${id}`);
+                if (btn) {
+                    btn.className = id === tabId 
+                        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-brand-accent text-white shadow-md'
+                        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all duration-200';
+                }
+                if (mbtn) {
+                    mbtn.className = id === tabId
+                        ? 'flex flex-col items-center p-1 text-brand-400 font-semibold'
+                        : 'flex flex-col items-center p-1 text-slate-400';
+                }
+            });
+
+            if (tabId === 'stats') {
+                setTimeout(() => {
+                    if (globalPieChartInstance) globalPieChartInstance.update();
+                    if (sectorBarChartInstance) sectorBarChartInstance.update();
+                }, 100);
+            }
+        }
+
+        /* ==========================================================================
+           SCENARIO RENDERING & SLIDER LOGIC
+           ========================================================================== */
+        function renderScenarioButtons() {
+            const grid = document.getElementById('scenarios-grid');
+            grid.innerHTML = '';
+
+            scenarios.forEach((sc, idx) => {
+                const isActive = idx === activeScenarioIndex;
+                const btn = document.createElement('button');
+                btn.onclick = () => loadScenario(idx);
+                btn.className = `p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                    isActive 
+                        ? 'bg-gradient-to-b from-indigo-900/60 to-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/10' 
+                        : 'bg-slate-900/60 border-slate-800 hover:bg-slate-800/60 hover:border-slate-700'
+                }`;
+
+                btn.innerHTML = `
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded ${isActive ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-800 text-slate-400'}">
+                            ${sc.category.split('/')[0]}
+                        </span>
+                        <h4 class="text-xs font-bold ${isActive ? 'text-white' : 'text-slate-300'} line-clamp-2 mt-1">
+                            ${sc.title}
+                        </h4>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-400 flex items-center justify-between border-t border-slate-800/60 pt-1.5">
+                        <span>Ver Caso</span>
+                        <i class="fa-solid ${isActive ? 'fa-circle-play text-brand-400' : 'fa-chevron-right'}"></i>
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function loadScenario(index) {
+            activeScenarioIndex = index;
+            const sc = scenarios[index];
+
+            // Render Scenario Cards
+            document.getElementById('case-category-badge').innerText = sc.category;
+            document.getElementById('case-risk-level').innerText = sc.riskLevel;
+            document.getElementById('case-title').innerText = sc.title;
+            document.getElementById('case-summary').innerText = sc.summary;
+            document.getElementById('case-impact-text').innerText = sc.impact;
+
+            const evList = document.getElementById('case-evidence-list');
+            evList.innerHTML = '';
+            sc.evidence.forEach(ev => {
+                const li = document.createElement('li');
+                li.innerText = ev;
+                evList.appendChild(li);
+            });
+
+            // Hide results panel when switching cases until re-submission
+            document.getElementById('results-panel').classList.add('hidden');
+
+            // Reset Sliders
+            resetSliders();
+            renderScenarioButtons();
+        }
+
+        /* Dynamic Slider Balancing Logic */
+        function handleSliderChange(changedRole, newValue) {
+            newValue = parseInt(newValue) || 0;
+            sliderValues[changedRole] = newValue;
+
+            // Recalculate Total
+            const total = sliderValues.dev + sliderValues.corp + sliderValues.user + sliderValues.reg;
+            
+            // Update Text Badges
+            document.getElementById(`val-${changedRole}`).innerText = `${newValue}%`;
+            
+            const totalBadge = document.getElementById('total-percentage-badge');
+            totalBadge.innerText = `${total}%`;
+
+            const warningBox = document.getElementById('slider-warning');
+            const submitBtn = document.getElementById('btn-submit-verdict');
+
+            if (total === 100) {
+                totalBadge.className = 'px-3 py-1 rounded-full text-sm font-extrabold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                warningBox.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                totalBadge.className = 'px-3 py-1 rounded-full text-sm font-extrabold font-mono bg-amber-500/20 text-amber-400 border border-amber-500/40';
+                warningBox.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function resetSliders() {
+            sliderValues = { dev: 25, corp: 25, user: 25, reg: 25 };
+            ['dev', 'corp', 'user', 'reg'].forEach(role => {
+                document.getElementById(`slider-${role}`).value = 25;
+                document.getElementById(`val-${role}`).innerText = '25%';
+            });
+            handleSliderChange('dev', 25);
+        }
+
+        /* ==========================================================================
+           SUBMIT VERDICT & RENDER COMPARISON CHART
+           ========================================================================== */
+        function submitVerdict() {
+            const sc = scenarios[activeScenarioIndex];
+            sc.benchmarks.user = { ...sliderValues };
+
+            // Reveal Results Section
+            const resultsPanel = document.getElementById('results-panel');
+            resultsPanel.classList.remove('hidden');
+
+            // Render Expert Legal Rationale
+            document.getElementById('legal-verdict-text').innerHTML = sc.legalVerdict;
+            document.getElementById('legal-statute-ref').innerText = sc.legalStatute;
+
+            // Smooth Scroll to Results
+            resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Draw / Update Comparison Chart
+            renderComparisonChart(sc);
+        }
+
+        function renderComparisonChart(scenario) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+
+            if (comparisonChartInstance) {
+                comparisonChartInstance.destroy();
+            }
+
+            const labels = [
+                '1. Creador / Dev', 
+                '2. Empresa / Deployer', 
+                '3. Operador Humano', 
+                '4. Reguladores'
+            ];
+
+            const userData = [
+                scenario.benchmarks.user.dev,
+                scenario.benchmarks.user.corp,
+                scenario.benchmarks.user.user,
+                scenario.benchmarks.user.reg
+            ];
+
+            const communityData = [
+                scenario.benchmarks.community.dev,
+                scenario.benchmarks.community.corp,
+                scenario.benchmarks.community.user,
+                scenario.benchmarks.community.reg
+            ];
+
+            const legalData = [
+                scenario.benchmarks.legal.dev,
+                scenario.benchmarks.legal.corp,
+                scenario.benchmarks.legal.user,
+                scenario.benchmarks.legal.reg
+            ];
+
+            comparisonChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Tu Veredicto',
+                            data: userData,
+                            backgroundColor: 'rgba(56, 189, 248, 0.85)',
+                            borderColor: '#38bdf8',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Comunidad Promedio',
+                            data: communityData,
+                            backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                            borderColor: '#6366f1',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Dictamen Legal Real',
+                            data: legalData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                            borderColor: '#10b981',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8',
+                                font: { family: 'Plus Jakarta Sans', size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: '#64748b',
+                                callback: value => value + '%'
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ==========================================================================
+           GLOBAL STATISTICS CHARTS
+           ========================================================================== */
+        function initGlobalCharts() {
+            // 1. Global Pie Chart
+            const ctxPie = document.getElementById('globalPieChart').getContext('2d');
+            globalPieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Empresa Desplegadora', 'Creador / Developer', 'Operador Humano', 'Reguladores'],
+                    datasets: [{
+                        data: [42, 32, 18, 8],
+                        backgroundColor: ['#6366f1', '#38bdf8', '#10b981', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#111827'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // 2. Sector Bar Chart
+            const ctxBar = document.getElementById('sectorBarChart').getContext('2d');
+            sectorBarChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Salud', 'Transporte', 'Finanzas', 'RRHH', 'Defensa'],
+                    datasets: [
+                        {
+                            label: '% Culpa Desarrollador',
+                            data: [28, 45, 30, 35, 25],
+                            backgroundColor: '#38bdf8',
+                            borderRadius: 4
+                        },
+                        {
+                            label: '% Culpa Operador/Empresa',
+                            data: [62, 45, 55, 55, 65],
+                            backgroundColor: '#6366f1',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { size: 11 } } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { color: '#64748b' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
